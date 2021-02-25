@@ -182,6 +182,9 @@ const vis: GaugeViz = {
         }
       ]
     }
+    options.tooltip = {
+      enabled: false
+    }
     // @ts-ignore
     Highcharts.chart(element, options);
   },

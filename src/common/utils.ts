@@ -141,7 +141,7 @@ export const getMinMaxDatetimes = (
     if (!maxTime || timePoint > maxTime) {
       maxTime = timePoint;
       maxIndex = i;
-      console.log(datum[timeSeries[0].name])
+      console.log(datum[timeSeries[0].name]);
     } else if (!minTime || timePoint < minTime) {
       minTime = timePoint;
     }
@@ -170,6 +170,9 @@ export const gaugeOptions = (
     },
     plotOptions: {
       series: {
+        tooltip: {
+          enabled: false,
+        },
         dataLabels: {
           enabled: false,
         },
@@ -220,8 +223,10 @@ export const gaugeOptions = (
           fontFamily: fontFamily,
         },
       },
-   },
-
+    },
+    tooltip: {
+      enabled: false,
+    },
     series: [
       {
         type: "gauge",
