@@ -1,20 +1,16 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+<!-- PROJECT LOGO -->
+<br />
+<p align="center">
+  <h3 align="center">Looker Stock Chart</h3>
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
-
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
-
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
-
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+  <p align="center">
+    Custom Vizualisation for the Looker platform that provides a simple line or bar chart with a navigator at the bottom.
+    <br />
+    <a href="https://github.com/looker/custom_visualizations_v2"><strong>Looker Custom Vizualisations »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/looker/custom_visualizations_v2/blob/master/docs/api_reference.md">API Reference</a>
+    ·
+    <a href="https://discourse.looker.com/t/creating-a-development-environment-for-custom-visualizations/8470">Setting up your dev environment</a>
+  </p>
+</p>

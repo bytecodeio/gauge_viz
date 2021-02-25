@@ -94,6 +94,7 @@ const vis: GaugeViz = {
       max_measures: 1,
     });
 
+
     let [pivots, dimensions, measures] = processQueryResponse(queryResponse);
     let fields = dimensions.concat(measures);
     let timeSeries = fields.filter((field) => field.type?.includes("date"));
@@ -110,36 +111,78 @@ const vis: GaugeViz = {
         return 1.0 * x[measures[0].name].value;
       })
     );
-    let minValue = 0
-    if (filterMin) {
-      minValue = filterMin
-    } else if (derivedMin) {
-      minValue = derivedMin
-    } else if (filterMin === 0) {
-      minValue = 0
-    }
+    let minValue = filterMin < derivedMin ? filterMin : derivedMin || 0
+    // if (filterMin) {
+    //   minValue = filterMin
+    // } else if (derivedMin) {
+    //   minValue = derivedMin
+    // } else if (filterMin === 0) {
+    //   minValue = 0
+    // }
     
     let derivedMax = Math.max(
       ...data.map((x) => {
         return 1.0 * x[measures[0].name].value;
       })
     );
-    let maxValue = 0
-    if (filterMax) {
-      maxValue = filterMax
-    } else if (derivedMax) {
-      maxValue = derivedMax
-    } else if (filterMax === 0) {
-      maxValue = 0
-    }
+    let maxValue = filterMax > derivedMax ? filterMax : derivedMax || 0
+    // if (filterMax) {
+    //   maxValue = filterMax
+    // } else if (derivedMax) {
+    //   maxValue = derivedMax
+    // } else if (filterMax === 0) {
+    //   maxValue = 0
+    // }
     
+    // Always show some range:
+    if (minValue === maxValue) {
+      minValue = minValue * 0.9
+      maxValue = maxValue * 1.1
+    }
 
     const [minTime, maxTime, maxIndex] = getMinMaxDatetimes(data, timeSeries);
 
+
     const latest = data[maxIndex][measures[0].name].value;
     const title = data[maxIndex][measures[0].name].rendered;
-   
-    const options = gaugeOptions(minValue, maxValue, latest, fontFamily, title);
+    const subtitle = new Date(maxTime).toUTCString();
+    const options = gaugeOptions(minValue, maxValue, latest, fontFamily, title, subtitle);
+    
+    // Set the colored bands
+    if (filterMin == 0 || filterMin !== 0) {
+    // @ts-ignore
+      options.yAxis.plotBands = [
+        {
+          from: minValue,
+          to: filterMin,
+          color: "#D2DEE3",
+          thickness: "30%",
+        },
+        {
+          from: filterMin,
+          to: filterMax,
+          color: "#83BC40",
+          thickness: "30%",
+        },
+        {
+          from: filterMax,
+          to: maxValue,
+          color: "#D2DEE3",
+          thickness: "30%",
+        },
+      ]
+    } else {
+      // @ts-ignore
+      options.yAxis.plotBands = [
+        {
+          from: minValue,
+          to: maxValue,
+          color: "#D2DEE3",
+          thickness: "30%",
+        }
+      ]
+    }
+    // @ts-ignore
     Highcharts.chart(element, options);
   },
 };
