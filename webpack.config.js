@@ -1,6 +1,5 @@
 let path = require("path");
 
-const UglifyJSPlugin = require("uglifyjs-webpack-plugin");
 
 let webpackConfig = {
   entry: {
@@ -15,8 +14,7 @@ let webpackConfig = {
   resolve: {
     extensions: [".ts", ".js", ".scss", ".css"],
   },
-  plugins: [new UglifyJSPlugin()],
-  module: {
+ module: {
     rules: [
       { test: /\.ts$/, loader: "ts-loader" },
       { test: /\.css$/, loader: ["to-string-loader", "css-loader"] },

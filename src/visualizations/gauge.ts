@@ -145,7 +145,7 @@ const vis: GaugeViz = {
 
     const latest = data[maxIndex][measures[0].name].value;
     const title = data[maxIndex][measures[0].name].rendered;
-    const subtitle = new Date(maxTime).toUTCString();
+    const subtitle = data[maxIndex][timeSeries[0].name].value;
     const options = gaugeOptions(minValue, maxValue, latest, fontFamily, title, subtitle);
     
     // Set the colored bands
