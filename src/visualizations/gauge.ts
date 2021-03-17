@@ -19,46 +19,22 @@ const vis: GaugeViz = {
   id: "gauge-chart", // id/label not required, but nice for testing and keeping manifests in sync
   label: "gauge-chart",
   options: {
-    color: {
-      type: "array",
-      label: "Colors",
-      display: "colors",
-      default: [
-        "#75E2E2",
-        "#3EB0D5",
-        "#4276BE",
-        "#592EC2",
-        "#9174F0",
-        "#B1399E",
-        "#B32F37",
-        "#E57947",
-        "#FBB555",
-        "#FFD95F",
-        "#C2DD67",
-        "#72D16D",
-      ].map((value) => {
-        return value.toLowerCase();
-      }),
-    },
-    title: {
-      type: "string",
-      label: "Chart(s) with Navigator",
-      display: "text",
-      default: "Chart(s) with Navigator",
-    },
-    charts: {
-      type: "string",
-      label: "Type of Chart(s)",
-      display: "select",
-      values: [{ "Gauge Chart": "gauge" }],
-      default: "gauge",
-    },
     overlay: {
       type: "boolean",
       label: "Overlay",
       display: "checkbox",
       default: true,
     },
+    upperThreshold: {
+      type: "number",
+      label: "Upper Threshold",
+      display: "number"
+    },
+    lowerThreshold: {
+      type: "number",
+      label: "Lower Threshold",
+      display: "number"
+    }
   },
   // Set up the initial state of the visualization
   create(element, config) {
@@ -70,18 +46,8 @@ const vis: GaugeViz = {
     // console.log("element", element);
     // console.log("config", config);
     console.log("queryResponse", queryResponse);
-    const filterMin =
-      queryResponse &&
-      queryResponse.applied_filters &&
-      queryResponse.applied_filters["analytics_func.gauge_lower_threshold"] &&
-      queryResponse.applied_filters["analytics_func.gauge_lower_threshold"]
-        .value;
-    const filterMax =
-      queryResponse &&
-      queryResponse.applied_filters &&
-      queryResponse.applied_filters["analytics_func.gauge_upper_threshold"] &&
-      queryResponse.applied_filters["analytics_func.gauge_upper_threshold"]
-        .value;
+    const filterMin = config.lowerThreshold
+    const filterMax = config.upperThreshold
     console.dir(`lower threshold: ${filterMin}`);
     console.dir(`lower threshold: ${filterMax}`);
 
@@ -112,13 +78,6 @@ const vis: GaugeViz = {
       })
     );
     let minValue = filterMin < derivedMin ? filterMin : derivedMin || 0
-    // if (filterMin) {
-    //   minValue = filterMin
-    // } else if (derivedMin) {
-    //   minValue = derivedMin
-    // } else if (filterMin === 0) {
-    //   minValue = 0
-    // }
     
     let derivedMax = Math.max(
       ...data.map((x) => {
@@ -126,14 +85,7 @@ const vis: GaugeViz = {
       })
     );
     let maxValue = filterMax > derivedMax ? filterMax : derivedMax || 0
-    // if (filterMax) {
-    //   maxValue = filterMax
-    // } else if (derivedMax) {
-    //   maxValue = derivedMax
-    // } else if (filterMax === 0) {
-    //   maxValue = 0
-    // }
-    
+ 
     // Always show some range:
     if (minValue === maxValue) {
       minValue = minValue * 0.9
@@ -144,7 +96,7 @@ const vis: GaugeViz = {
 
 
     const latest = data[maxIndex][measures[0].name].value;
-    const title = data[maxIndex][measures[0].name].rendered;
+    const title = data[maxIndex][measures[0].name].html;
     const subtitle = data[maxIndex][timeSeries[0].name].value;
     const options = gaugeOptions(minValue, maxValue, latest, fontFamily, title, subtitle);
     
