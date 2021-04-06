@@ -14,25 +14,20 @@ declare var looker: Looker;
 interface GaugeViz extends VisualizationDefinition {
   elementRef?: HTMLDivElement;
 }
-
+ 
 const vis: GaugeViz = {
   id: "gauge-chart", // id/label not required, but nice for testing and keeping manifests in sync
   label: "gauge-chart",
+  //  These are the Looker Viz Config menu options.
   options: {
-    overlay: {
-      type: "boolean",
-      label: "Overlay",
-      display: "checkbox",
-      default: true,
-    },
     upperThreshold: {
       type: "number",
-      label: "Upper Threshold",
+      label: "Upper Threshold (colored section)",
       display: "number"
     },
     lowerThreshold: {
       type: "number",
-      label: "Lower Threshold",
+      label: "Lower Threshold (colored section)",
       display: "number"
     }
   },
@@ -45,11 +40,12 @@ const vis: GaugeViz = {
     // console.log("data", data);
     // console.log("element", element);
     // console.log("config", config);
-    console.log("queryResponse", queryResponse);
+    // console.log("queryResponse", queryResponse);
+    // console.dir(`lower threshold: ${filterMin}`);
+    // console.dir(`lower threshold: ${filterMax}`);
+
     const filterMin = config.lowerThreshold
     const filterMax = config.upperThreshold
-    console.dir(`lower threshold: ${filterMin}`);
-    console.dir(`lower threshold: ${filterMax}`);
 
     const errors = handleErrors(this, queryResponse, {
       min_pivots: 0,
@@ -71,42 +67,51 @@ const vis: GaugeViz = {
       );
     }
 
-          
+    // This function finds the lowest value in the data.
     let derivedMin = Math.min(
       ...data.map((x) => {
+        // 1.0 turns it into a number, just in case it isn't!
         return 1.0 * x[measures[0].name].value;
       })
     );
-    let minValue = filterMin < derivedMin ? filterMin : derivedMin || 0
+    // Display the greatest range possible, so whichever is lower, use it.
+    let minValue = 0
+    if (derivedMin != undefined) minValue = derivedMin; 
+    if (filterMin != undefined && filterMin < derivedMin) minValue = filterMin;
     
+    // This function finds the highest value in the data.
     let derivedMax = Math.max(
       ...data.map((x) => {
+        // 1.0 turns it into a number, just in case it isn't!
         return 1.0 * x[measures[0].name].value;
       })
     );
+    // Display the greatest range possible, so whichever is higher, use it.
     let maxValue = filterMax > derivedMax ? filterMax : derivedMax || 0
  
     // Always show some range:
     if (minValue === maxValue) {
-      minValue = minValue * 0.9
-      maxValue = maxValue * 1.1
+      minValue = minValue * 0.9 + 1
+      maxValue = maxValue * 1.1 - 1
     }
 
+    // Find the latest entry (by index) and pull out the title/header values, time and pointer value.
     const [minTime, maxTime, maxIndex] = getMinMaxDatetimes(data, timeSeries);
-
-
     const latest = data[maxIndex][measures[0].name].value;
     const title = data[maxIndex][measures[0].name].html;
     const subtitle = data[maxIndex][timeSeries[0].name].value;
     const options = gaugeOptions(minValue, maxValue, latest, fontFamily, title, subtitle);
     
-    // Set the colored bands
+    
+    // TODO rewrite this to use 'undefined' instead of 0
     if (filterMin == 0 || filterMin !== 0) {
+      // Ignore the @ts-ignore comments. They just tell typescript to chill.
     // @ts-ignore
       options.yAxis.plotBands = [
+        // Set the colored bands
         {
           from: minValue,
-          to: filterMin,
+          to: maxValue,
           color: "#D2DEE3",
           thickness: "30%",
         },
@@ -114,12 +119,6 @@ const vis: GaugeViz = {
           from: filterMin,
           to: filterMax,
           color: "#83BC40",
-          thickness: "30%",
-        },
-        {
-          from: filterMax,
-          to: maxValue,
-          color: "#D2DEE3",
           thickness: "30%",
         },
       ]
