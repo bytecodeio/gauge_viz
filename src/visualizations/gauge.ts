@@ -40,12 +40,16 @@ const vis: GaugeViz = {
     // console.log("data", data);
     // console.log("element", element);
     // console.log("config", config);
-    // console.log("queryResponse", queryResponse);
+    console.log("queryResponse", queryResponse);
     // console.dir(`lower threshold: ${filterMin}`);
     // console.dir(`lower threshold: ${filterMax}`);
 
-    const filterMin = config.lowerThreshold
-    const filterMax = config.upperThreshold
+    // applied_filters["analytics_func_simple.channel_id"].value
+    let dashboardLowerFilter = queryResponse?.applied_filters["analytics_func_simple.gauge_lower_threshold"]?.value
+    let dashboardUpperFilter = queryResponse?.applied_filters["analytics_func_simple.gauge_upper_threshold"]?.value
+
+    const filterMin = dashboardLowerFilter ? dashboardLowerFilter : config.lowerThreshold
+    const filterMax = dashboardUpperFilter ? dashboardUpperFilter : config.upperThreshold
 
     const errors = handleErrors(this, queryResponse, {
       min_pivots: 0,
@@ -91,8 +95,8 @@ const vis: GaugeViz = {
  
     // Always show some range:
     if (minValue === maxValue) {
-      minValue = minValue * 0.9 + 1
-      maxValue = maxValue * 1.1 - 1
+      minValue = minValue * 0.9 - 1
+      maxValue = maxValue * 1.1 + 1
     }
 
     // Find the latest entry (by index) and pull out the title/header values, time and pointer value.
