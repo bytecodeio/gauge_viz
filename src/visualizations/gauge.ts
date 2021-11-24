@@ -45,8 +45,9 @@ const vis: GaugeViz = {
     // console.dir(`lower threshold: ${filterMax}`);
 
     // applied_filters["analytics_func_simple.channel_id"].value
-    let dashboardLowerFilter = queryResponse?.applied_filters["analytics_func_simple.gauge_lower_threshold"]?.value
-    let dashboardUpperFilter = queryResponse?.applied_filters["analytics_func_simple.gauge_upper_threshold"]?.value
+    const hasAppliedFilters = !!queryResponse && !!queryResponse.applied_filters
+    let dashboardLowerFilter = hasAppliedFilters && queryResponse.applied_filters["analytics_func_simple.gauge_lower_threshold"]?.value
+    let dashboardUpperFilter = hasAppliedFilters && queryResponse.applied_filters["analytics_func_simple.gauge_upper_threshold"]?.value
 
     const filterMin = dashboardLowerFilter ? dashboardLowerFilter : config.lowerThreshold
     const filterMax = dashboardUpperFilter ? dashboardUpperFilter : config.upperThreshold
