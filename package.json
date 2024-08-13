@@ -6,24 +6,24 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:dev": "webpack-dev-server",
+    "start": "export NODE_OPTIONS=--openssl-legacy-provider && webpack-dev-server",
     "build": "webpack"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^22.2.0",
     "css-loader": "^3.6.0",
-    "node-sass": "^4.14.1",
-    "sass-loader": "^9.0.2",
     "style-loader": "^1.2.1",
     "to-string-loader": "^1.1.6",
     "ts-loader": "^8.0.1",
-    "typescript": "^3.9.7",
+    "typescript": "^5.5.4",
     "webpack": "^4.46.0",
     "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "highcharts": "^9.0.0",
+    "highcharts": "^11.4.6",
     "highcharts-more": "^0.1.7",
     "highcharts-more-node": "^5.0.13"
   }

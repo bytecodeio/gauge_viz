@@ -4,6 +4,7 @@ import {
   getMinMaxDatetimes,
   processQueryResponse,
   gaugeOptions,
+  flexibleGaugeOptions,
 } from "../common/utils";
 import { fontFamily } from "../common/chart-defaults";
 import { Chart, Options } from "highcharts";
@@ -11,29 +12,73 @@ import { Highcharts } from "highcharts-more-node";
 
 declare var looker: Looker;
 
+declare var LookerCharts: {
+  Utils: {
+    htmlForCell: (cell: any) => string;
+  };
+};
 interface GaugeViz extends VisualizationDefinition {
   elementRef?: HTMLDivElement;
 }
- 
+
+interface Measure {
+  label: string;
+  name: string;
+}
+
 const vis: GaugeViz = {
   id: "gauge-chart", // id/label not required, but nice for testing and keeping manifests in sync
   label: "gauge-chart",
   //  These are the Looker Viz Config menu options.
   options: {
-    upperThreshold: {
-      type: "number",
-      label: "Upper Threshold (colored section)",
-      display: "number"
+    metricColor: {
+      type: "array",
+      label: "Metric Color",
+      display: "color",
+      section: "Style",
     },
-    lowerThreshold: {
-      type: "number",
-      label: "Lower Threshold (colored section)",
-      display: "number"
-    }
+    redColor: {
+      type: "array",
+      label: "Red Color",
+      display: "color",
+      section: "Style",
+    },
+    greenColor: {
+      type: "array",
+      label: "Green Color",
+      display: "color",
+      section: "Style",
+    },
+    yellowColor: {
+      type: "array",
+      label: "Yellow Color",
+      display: "color",
+      section: "Style",
+    },
+    backgroundColor: {
+      type: "array",
+      label: "Background Color",
+      display: "color",
+      section: "Style",
+    },
+    backgroundDialColor: {
+      type: "array",
+      label: "Background Dial Color",
+      display: "color",
+      section: "Style",
+    },
+    markerColor: {
+      type: "array",
+      label: "Marker Color",
+      display: "color",
+      section: "Style",
+    },
+
   },
   // Set up the initial state of the visualization
   create(element, config) {
     element.className = "highcharts-custom-vis";
+
   },
   // Render in response to the data or settings changing
   update(data, element, config, queryResponse) {
@@ -41,10 +86,6 @@ const vis: GaugeViz = {
     // console.log("element", element);
     // console.log("config", config);
     console.log("queryResponse", queryResponse);
-    // console.dir(`lower threshold: ${filterMin}`);
-    // console.dir(`lower threshold: ${filterMax}`);
-
-    // applied_filters["analytics_func_simple.channel_id"].value
     const hasAppliedFilters = !!queryResponse && !!queryResponse.applied_filters
     let dashboardLowerFilter = hasAppliedFilters && queryResponse.applied_filters["analytics_func_simple.gauge_lower_threshold"]?.value
     let dashboardUpperFilter = hasAppliedFilters && queryResponse.applied_filters["analytics_func_simple.gauge_upper_threshold"]?.value
@@ -55,12 +96,93 @@ const vis: GaugeViz = {
     const errors = handleErrors(this, queryResponse, {
       min_pivots: 0,
       max_pivots: 0,
-      min_dimensions: 1,
-      max_dimensions: 5,
-      min_measures: 1,
-      max_measures: 1,
+      min_dimensions: 0,
+      max_dimensions: 0,
+      min_measures: 3,
+      max_measures: 10,
     });
 
+    const { measure_like: measureLike } = queryResponse.fields;
+    const measures1: Measure[] = measureLike.map((measure) => ({
+      label: measure.label_short ?? measure.label,
+      name: measure.name,
+    }));
+
+    const updatedOptions = { ...this.options };
+    updatedOptions["currentValue"] = {
+      section: "Metrics",
+      type: "string",
+      label: "Current Value",
+      display: "select",
+      order: 1,
+      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
+      default: measures1[0].name,
+    };
+    updatedOptions["minValue"] = {
+      section: "Metrics",
+      type: "string",
+      label: "Minimum Value",
+      display: "select",
+      order: 2,
+      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
+      default: measures1[0].name,
+    };
+    updatedOptions["endRedBeginYellow"] = {
+      section: "Metrics",
+      type: "string",
+      label: "End Red Begin Yellow",
+      display: "select",
+      order: 3,
+      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
+      default: measures1[0].name,
+    };
+    updatedOptions["endYellowBeginGreen"] = {
+      section: "Metrics",
+      type: "string",
+      label: "End Yellow Begin Green",
+      display: "select",
+      order: 4,
+      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
+      default: measures1[0].name,
+    };
+    updatedOptions["targetValue"] = {
+      section: "Metrics",
+      type: "string",
+      label: "Target Value",
+      display: "select",
+      order: 5,
+      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
+      default: measures1[0].name,
+    };
+    updatedOptions["endGreenBeginYellow"] = {
+      section: "Metrics",
+      type: "string",
+      label: "End Green Begin Yellow",
+      display: "select",
+      order: 6,
+      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
+      default: measures1[0].name,
+    };
+    updatedOptions["endYellowBeginRed"] = {
+      section: "Metrics",
+      type: "string",
+      label: "End Yellow Begin Red",
+      display: "select",
+      order: 7,
+      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
+      default: measures1[0].name,
+    };
+    updatedOptions["maxValue"] = {
+      section: "Metrics",
+      type: "string",
+      label: "Maximum Value",
+      display: "select",
+      order: 8,
+      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
+      default: measures1[0].name,
+    };
+
+    this.trigger("registerOptions", updatedOptions);
 
     let [pivots, dimensions, measures] = processQueryResponse(queryResponse);
     let fields = dimensions.concat(measures);
@@ -72,76 +194,98 @@ const vis: GaugeViz = {
       );
     }
 
-    // This function finds the lowest value in the data.
-    let derivedMin = Math.min(
-      ...data.map((x) => {
-        // 1.0 turns it into a number, just in case it isn't!
-        return 1.0 * x[measures[0].name].value;
-      })
-    );
-    // Display the greatest range possible, so whichever is lower, use it.
-    let minValue = 0
-    if (derivedMin != undefined) minValue = derivedMin; 
-    if (filterMin != undefined && filterMin < derivedMin) minValue = filterMin;
-    
-    // This function finds the highest value in the data.
-    let derivedMax = Math.max(
-      ...data.map((x) => {
-        // 1.0 turns it into a number, just in case it isn't!
-        return 1.0 * x[measures[0].name].value;
-      })
-    );
-    // Display the greatest range possible, so whichever is higher, use it.
-    let maxValue = filterMax > derivedMax ? filterMax : derivedMax || 0
- 
-    // Always show some range:
-    if (minValue === maxValue) {
-      minValue = minValue * 0.9 - 1
-      maxValue = maxValue * 1.1 + 1
-    }
+    const cellValue = (configName: string) => Number(data[0][config[configName]]?.value);
+    const cellHTML = (configName: string) => LookerCharts.Utils.htmlForCell(data[0][config[configName]]);
+    const innerRadius = (minField: string, maxField: string): string => {
+      if (cellValue('currentValue') >= cellValue(minField) && cellValue('currentValue') <= cellValue(maxField)) {
+        return '40%';
+      } else {
+        return '90%';
+      }
+    };
 
+    // Display the greatest range possible, so whichever is lower, use it.
+    const minValue = cellValue('minValue') || 0;
+
+    const maxValue = cellValue('maxValue') || 100;
+
+    console.log("minValue", minValue);
     // Find the latest entry (by index) and pull out the title/header values, time and pointer value.
-    const [minTime, maxTime, maxIndex] = getMinMaxDatetimes(data, timeSeries);
-    const latest = data[maxIndex][measures[0].name].value;
-    const title = data[maxIndex][measures[0].name].html;
-    const subtitle = data[maxIndex][timeSeries[0].name].value;
-    const options = gaugeOptions(minValue, maxValue, latest, fontFamily, title, subtitle);
-    
-    
-    // TODO rewrite this to use 'undefined' instead of 0
-    if (filterMin == 0 || filterMin !== 0) {
-      // Ignore the @ts-ignore comments. They just tell typescript to chill.
-    // @ts-ignore
-      options.yAxis.plotBands = [
-        // Set the colored bands
-        {
-          from: minValue,
-          to: maxValue,
-          color: "#D2DEE3",
-          thickness: "30%",
-        },
-        {
-          from: filterMin,
-          to: filterMax,
-          color: "#83BC40",
-          thickness: "30%",
-        },
-      ]
-    } else {
-      // @ts-ignore
-      options.yAxis.plotBands = [
-        {
-          from: minValue,
-          to: maxValue,
-          color: "#D2DEE3",
-          thickness: "30%",
-        }
-      ]
+    const latest = data[0][measures[0].name].value;
+    const title = data[0][measures[0].name].html;
+    const subtitle = data[0][timeSeries[0]?.name]?.value;
+    // const options = gaugeOptions(minValue, maxValue, latest, fontFamily, title, subtitle);
+    const options: Highcharts.options = flexibleGaugeOptions()
+
+    options.yAxis.min = Number(minValue);
+    options.yAxis.max = Number(maxValue);
+    options.series[0].data = [cellValue('currentValue')];
+    options.subtitle.text = `${cellHTML('currentValue')} of ${cellHTML('targetValue')}`;
+    options.title.text = Math.round(cellValue('currentValue') / cellValue('targetValue') * 100) + "%";
+    options.series[0].dial.backgroundColor = config.markerColor[0];
+    options.chart.backgroundColor = config.backgroundColor[0];
+
+    options.yAxis.plotBands = [
+      // Set the colored bands
+      {
+        from: cellValue('minValue'),
+        to: cellValue('maxValue'),
+        color: config.backgroundDialColor[0], 
+        innerRadius: '40%', // Inner radius for background grey
+        outerRadius: '100%'
+      },
+      {
+        from: cellValue('minValue'),
+        to: cellValue('endRedBeginYellow'),
+        color: config.redColor[0], 
+        innerRadius: innerRadius('minValue', 'endRedBeginYellow'), 
+        outerRadius: '100%'
+      }, {
+        from: cellValue('endRedBeginYellow'),
+        to: cellValue('endYellowBeginGreen'),
+        color: config.yellowColor[0], 
+        innerRadius: innerRadius('endRedBeginYellow', 'endYellowBeginGreen'), 
+        outerRadius: '100%'
+      }, {
+        from: cellValue('endYellowBeginGreen'),
+        to: cellValue('endGreenBeginYellow'),
+        color: config.greenColor[0], 
+        innerRadius: innerRadius('endYellowBeginGreen', 'endGreenBeginYellow'), 
+        outerRadius: '100%'
+      }, {
+        from: cellValue('endGreenBeginYellow'),
+        to: cellValue('endYellowBeginRed'),
+        color: config.yellowColor[0], 
+        innerRadius: innerRadius('endGreenBeginYellow', 'endYellowBeginRed'), 
+        outerRadius: '100%'
+      }, {
+        from: cellValue('endYellowBeginRed'),
+        to: cellValue('maxValue'),
+        color: config.redColor[0], 
+        innerRadius: innerRadius('endYellowBeginRed', 'maxValue'), 
+        outerRadius: '100%'
+      },
+      {
+        from: cellValue('minValue'),
+        to: cellValue('maxValue'),
+        color: config.metricColor[0], // static style
+        innerRadius: '30%', // Inner radius for metric
+        outerRadius: '35%'
+      }
+    ]
+
+    let titleColor = '#000000';
+    const plotBands = options.yAxis.plotBands;
+    for (let i = 1; i < plotBands.length -1; i++) {
+      const band = plotBands[i];
+      if (cellValue('currentValue') >= band.from && cellValue('currentValue') <= band.to) {
+        titleColor = band.color;
+        break;
+      }
     }
-    options.tooltip = {
-      enabled: false
-    }
-    // @ts-ignore
+    options.title.style.color = titleColor;
+  
+    options.title.style.color = titleColor;
     Highcharts.chart(element, options);
   },
 };

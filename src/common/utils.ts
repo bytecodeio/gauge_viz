@@ -42,9 +42,8 @@ export const handleErrors = (
     if (count < min) {
       vis.addError({
         title: `Not Enough ${noun}s`,
-        message: `This visualization requires ${
-          min === max ? "exactly" : "at least"
-        } ${min} ${noun.toLowerCase()}${min === 1 ? "" : "s"}.`,
+        message: `This visualization requires ${min === max ? "exactly" : "at least"
+          } ${min} ${noun.toLowerCase()}${min === 1 ? "" : "s"}.`,
         group,
       });
       return false;
@@ -52,9 +51,8 @@ export const handleErrors = (
     if (count > max) {
       vis.addError({
         title: `Too Many ${noun}s`,
-        message: `This visualization requires ${
-          min === max ? "exactly" : "no more than"
-        } ${max} ${noun.toLowerCase()}${min === 1 ? "" : "s"}.`,
+        message: `This visualization requires ${min === max ? "exactly" : "no more than"
+          } ${max} ${noun.toLowerCase()}${min === 1 ? "" : "s"}.`,
         group,
       });
       return false;
@@ -112,8 +110,8 @@ export const processQueryResponse = (
 
   let dimensions = queryResponse.fields.dimensions.map((dimension) => {
     return {
-      name: dimension.name,
-      type: dimension.type,
+      name: dimension?.name,
+      type: dimension?.type,
       title: dimension.label_short.trim().replace(/\r?\n/g, ""),
     };
   });
@@ -135,13 +133,13 @@ export const getMinMaxDatetimes = (
   let minTime, maxTime, maxIndex;
   data.map((datum, i) => {
     let timePoint = formatType(
-      timeSeries[0].type,
-      datum[timeSeries[0].name].value
+      timeSeries[0]?.type,
+      datum[timeSeries[0]?.name]?.value
     );
     if (!maxTime || timePoint > maxTime) {
       maxTime = timePoint;
       maxIndex = i;
-      console.log(datum[timeSeries[0].name]);
+      console.log(datum[timeSeries[0]?.name]);
     } else if (!minTime || timePoint < minTime) {
       minTime = timePoint;
     }
@@ -258,3 +256,71 @@ export const gaugeOptions = (
     ],
   };
 };
+
+
+export const flexibleGaugeOptions = () => {
+  return {
+    chart: {
+      type: 'gauge',
+      plotBackgroundColor: null,
+      plotBackgroundImage: null,
+      plotBorderWidth: 0,
+      plotShadow: false,
+    },
+    title: {
+      style: {
+        
+        fontSize: '30px', // Font size for the title
+        verticalAlign: 'top' // Align to the top
+      },
+      y: 40 // Adjust vertical position
+    },
+    subtitle: {
+      style: {
+        color: '#D3D3D3', // Light gray color for subtitle
+        fontSize: '16px', // Font size for the subtitle
+        verticalAlign: 'top' // Align to the top
+      },
+      y: 70 // Adjust vertical position
+    },
+    pane: {
+      startAngle: -90,
+      endAngle: 90,
+      size: '150%',
+      background: [{
+        backgroundColor: null, // No background
+        borderWidth: 0,
+        outerRadius: '100%'
+      }],
+      center: ['50%', '80%'], // Center gauge
+    },
+
+    yAxis: {
+      lineWidth: 0,
+      tickPositions: [],
+      labels: {
+        enabled: false // Hide labels for a cleaner look
+      },
+
+    },
+    tooltip: {
+      enabled: false
+    },
+    series: [{
+      tooltip: {
+        enabled: false
+      },
+      dial: {
+        radius: '105%',
+        baseLength: '10%',
+        baseWidth: 10,
+        rearLength: '10%',
+      },
+      dataLabels: {
+        enabled: false, // Hide data labels
+      }
+    }],
+
+
+  }
+}
