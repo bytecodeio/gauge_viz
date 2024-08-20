@@ -118,32 +118,47 @@ const vis: GaugeViz = {
       values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
       default: measures1[0].name,
     };
-    updatedOptions["minValue"] = {
+    // updatedOptions["minValue"] = {
+    //   section: "Metrics",
+    //   type: "string",
+    //   label: "Minimum Value",
+    //   display: "select",
+    //   order: 2,
+    //   values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
+    //   default: measures1[0].name,
+    // };
+    updatedOptions["minValuePct"] = {
       section: "Metrics",
-      type: "string",
-      label: "Minimum Value",
-      display: "select",
+      type: "number",
+      label: "Minimum Value %",
+      display: "number",
       order: 2,
-      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
-      default: measures1[0].name,
+      default: 0,
     };
-    updatedOptions["endRedBeginYellow"] = {
+    // updatedOptions["endRedBeginYellow"] = {
+    //   section: "Metrics",
+    //   type: "string",
+    //   label: "End Red Begin Yellow",
+    //   display: "select",
+    //   order: 3,
+    //   values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
+    //   default: measures1[0].name,
+    // };
+    updatedOptions["endRedBeginYellowPct"] = {
       section: "Metrics",
-      type: "string",
-      label: "End Red Begin Yellow",
-      display: "select",
+      type: "number",
+      label: "End Red Begin Yellow %",
+      display: "number",
       order: 3,
-      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
-      default: measures1[0].name,
+      default: 80,
     };
-    updatedOptions["endYellowBeginGreen"] = {
+    updatedOptions["endYellowBeginGreenPct"] = {
       section: "Metrics",
-      type: "string",
-      label: "End Yellow Begin Green",
-      display: "select",
+      type: "number",
+      label: "End Yellow Begin Green %",
+      display: "number",
       order: 4,
-      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
-      default: measures1[0].name,
+      default: 90,
     };
     updatedOptions["targetValue"] = {
       section: "Metrics",
@@ -154,32 +169,29 @@ const vis: GaugeViz = {
       values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
       default: measures1[0].name,
     };
-    updatedOptions["endGreenBeginYellow"] = {
+    updatedOptions["endGreenBeginYellowPct"] = {
       section: "Metrics",
-      type: "string",
-      label: "End Green Begin Yellow",
-      display: "select",
+      type: "number",
+      label: "End Green Begin Yellow %",
+      display: "number",
       order: 6,
-      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
-      default: measures1[0].name,
+      default: 110,
     };
-    updatedOptions["endYellowBeginRed"] = {
+    updatedOptions["endYellowBeginRedPct"] = {
       section: "Metrics",
-      type: "string",
-      label: "End Yellow Begin Red",
-      display: "select",
+      type: "number",
+      label: "End Yellow Begin Red %",
+      display: "number",
       order: 7,
-      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
-      default: measures1[0].name,
+      default: 120,
     };
-    updatedOptions["maxValue"] = {
+    updatedOptions["maxValuePct"] = {
       section: "Metrics",
-      type: "string",
-      label: "Maximum Value",
-      display: "select",
+      type: "number",
+      label: "Maximum Value %",
+      display: "number",
       order: 8,
-      values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
-      default: measures1[0].name,
+      default: 140,
     };
 
     this.trigger("registerOptions", updatedOptions);
@@ -195,9 +207,10 @@ const vis: GaugeViz = {
     }
 
     const cellValue = (configName: string) => Number(data[0][config[configName]]?.value);
+    const cellPct = (configName: string) => Number(data[0][config['targetValue']]?.value) * config[configName] / 100;
     const cellHTML = (configName: string) => LookerCharts.Utils.htmlForCell(data[0][config[configName]]);
     const innerRadius = (minField: string, maxField: string): string => {
-      if (cellValue('currentValue') >= cellValue(minField) && cellValue('currentValue') <= cellValue(maxField)) {
+      if (cellValue('currentValue') >= cellPct(minField) && cellValue('currentValue') <= cellPct(maxField)) {
         return '40%';
       } else {
         return '90%';
@@ -205,16 +218,11 @@ const vis: GaugeViz = {
     };
 
     // Display the greatest range possible, so whichever is lower, use it.
-    const minValue = cellValue('minValue') || 0;
+    const minValue = cellPct('minValuePct') || 0;
 
-    const maxValue = cellValue('maxValue') || 100;
+    const maxValue = cellPct('maxValuePct') || 100;
 
     console.log("minValue", minValue);
-    // Find the latest entry (by index) and pull out the title/header values, time and pointer value.
-    const latest = data[0][measures[0].name].value;
-    const title = data[0][measures[0].name].html;
-    const subtitle = data[0][timeSeries[0]?.name]?.value;
-    // const options = gaugeOptions(minValue, maxValue, latest, fontFamily, title, subtitle);
     const options: Highcharts.options = flexibleGaugeOptions()
 
     options.yAxis.min = Number(minValue);
@@ -235,39 +243,39 @@ const vis: GaugeViz = {
         outerRadius: '100%'
       },
       {
-        from: cellValue('minValue'),
-        to: cellValue('endRedBeginYellow'),
+        from: cellPct('minValuePct'),
+        to: cellPct('endRedBeginYellowPct'),
         color: config.redColor[0], 
-        innerRadius: innerRadius('minValue', 'endRedBeginYellow'), 
+        innerRadius: innerRadius('minValuePct', 'endRedBeginYellowPct'), 
         outerRadius: '100%'
       }, {
-        from: cellValue('endRedBeginYellow'),
-        to: cellValue('endYellowBeginGreen'),
+        from: cellPct('endRedBeginYellowPct'),
+        to: cellPct('endYellowBeginGreenPct'),
         color: config.yellowColor[0], 
-        innerRadius: innerRadius('endRedBeginYellow', 'endYellowBeginGreen'), 
+        innerRadius: innerRadius('endRedBeginYellowPct', 'endYellowBeginGreenPct'), 
         outerRadius: '100%'
       }, {
-        from: cellValue('endYellowBeginGreen'),
-        to: cellValue('endGreenBeginYellow'),
+        from: cellPct('endYellowBeginGreenPct'),
+        to: cellPct('endGreenBeginYellowPct'),
         color: config.greenColor[0], 
-        innerRadius: innerRadius('endYellowBeginGreen', 'endGreenBeginYellow'), 
+        innerRadius: innerRadius('endYellowBeginGreenPct', 'endGreenBeginYellowPct'), 
         outerRadius: '100%'
       }, {
-        from: cellValue('endGreenBeginYellow'),
-        to: cellValue('endYellowBeginRed'),
+        from: cellPct('endGreenBeginYellowPct'),
+        to: cellPct('endYellowBeginRedPct'),
         color: config.yellowColor[0], 
-        innerRadius: innerRadius('endGreenBeginYellow', 'endYellowBeginRed'), 
+        innerRadius: innerRadius('endGreenBeginYellowPct', 'endYellowBeginRedPct'), 
         outerRadius: '100%'
       }, {
-        from: cellValue('endYellowBeginRed'),
-        to: cellValue('maxValue'),
+        from: cellPct('endYellowBeginRedPct'),
+        to: cellPct('maxValuePct'),
         color: config.redColor[0], 
-        innerRadius: innerRadius('endYellowBeginRed', 'maxValue'), 
+        innerRadius: innerRadius('endYellowBeginRedPct', 'maxValuePct'), 
         outerRadius: '100%'
       },
       {
-        from: cellValue('minValue'),
-        to: cellValue('maxValue'),
+        from: cellPct('minValuePct'),
+        to: cellPct('maxValuePct'),
         color: config.metricColor[0], // static style
         innerRadius: '30%', // Inner radius for metric
         outerRadius: '35%'

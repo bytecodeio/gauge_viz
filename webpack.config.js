@@ -18,7 +18,6 @@ let webpackConfig = {
     rules: [
       { test: /\.ts$/, loader: "ts-loader" },
       { test: /\.css$/, loader: ["to-string-loader", "css-loader"] },
-      { test: /\.scss$/, use: ["style-loader", "css-loader", "sass-loader"] },
     ],
   },
   devServer: {
