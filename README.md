@@ -5,14 +5,14 @@
 ### Prerequisites:
 
 - [Node](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/)
-- Reccomended: [IDE/VSCode]()
+- Reccomended: [IDE/VSCode](https://code.visualstudio.com/download)
 
 ### Clone this repo and install with:
-
+In this directory, run
 - ```yarn install```
 
-## Serve the viz for development
-
+## Development:
+In this directory, run
 - ```yarn start```
 
 [Open The Visualization being served and Trust the Certificate:](https://127.0.0.1:3443/gauge.js)
