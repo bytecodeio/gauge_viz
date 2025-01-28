@@ -73,7 +73,27 @@ const vis: GaugeViz = {
       display: "color",
       section: "Style",
     },
-
+    fontFamily: {
+      type: "string",
+      label: "Font Family",
+      display: "select",
+      section: "Style",
+      values: [
+        { "Arial": "Arial" },
+        { "Verdana": "Verdana" },
+        { "Helvetica": "Helvetica" },
+        { "Times New Roman": "Times New Roman" },
+        { "Courier New": "Courier New" },
+        { "Georgia": "Georgia" },
+        { "Palatino": "Palatino" },
+        { "Garamond": "Garamond" },
+        { "Comic Sans MS": "Comic Sans MS" },
+        { "Trebuchet MS": "Trebuchet MS" },
+        { "Arial Black": "Arial Black" },
+        { "Impact": "Impact" }
+      ],
+      default: "Arial",
+    },
   },
   // Set up the initial state of the visualization
   create(element, config) {
@@ -82,9 +102,6 @@ const vis: GaugeViz = {
   },
   // Render in response to the data or settings changing
   update(data, element, config, queryResponse) {
-    // console.log("data", data);
-    // console.log("element", element);
-    // console.log("config", config);
     console.log("queryResponse", queryResponse);
     const hasAppliedFilters = !!queryResponse && !!queryResponse.applied_filters
     let dashboardLowerFilter = hasAppliedFilters && queryResponse.applied_filters["analytics_func_simple.gauge_lower_threshold"]?.value
@@ -118,15 +135,7 @@ const vis: GaugeViz = {
       values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
       default: measures1[0].name,
     };
-    // updatedOptions["minValue"] = {
-    //   section: "Metrics",
-    //   type: "string",
-    //   label: "Minimum Value",
-    //   display: "select",
-    //   order: 2,
-    //   values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
-    //   default: measures1[0].name,
-    // };
+    // updated
     updatedOptions["minValuePct"] = {
       section: "Metrics",
       type: "number",
@@ -135,15 +144,6 @@ const vis: GaugeViz = {
       order: 2,
       default: 0,
     };
-    // updatedOptions["endRedBeginYellow"] = {
-    //   section: "Metrics",
-    //   type: "string",
-    //   label: "End Red Begin Yellow",
-    //   display: "select",
-    //   order: 3,
-    //   values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
-    //   default: measures1[0].name,
-    // };
     updatedOptions["endRedBeginYellowPct"] = {
       section: "Metrics",
       type: "number",
@@ -292,8 +292,8 @@ const vis: GaugeViz = {
       }
     }
     options.title.style.color = titleColor;
-  
-    options.title.style.color = titleColor;
+    options.title.style.fontFamily = config.fontFamily;
+    options.subtitle.style.fontFamily = config.fontFamily;
     Highcharts.chart(element, options);
   },
 };
