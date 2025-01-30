@@ -73,6 +73,13 @@ const vis: GaugeViz = {
       display: "color",
       section: "Style",
     },
+    
+    titleColor: {
+      type: "array",
+      label: "Title Color",
+      display: "color",
+      section: "Style",
+    },
     fontFamily: {
       type: "string",
       label: "Font Family",
@@ -93,6 +100,12 @@ const vis: GaugeViz = {
         { "Impact": "Impact" }
       ],
       default: "Arial",
+    },
+    goalColor: {
+      type: "array",
+      label: "Goal Color",
+      display: "color",
+      section: "Style",
     },
   },
   // Set up the initial state of the visualization
@@ -228,11 +241,13 @@ const vis: GaugeViz = {
     options.yAxis.min = Number(minValue);
     options.yAxis.max = Number(maxValue);
     options.series[0].data = [cellValue('currentValue')];
-    options.subtitle.text = `${cellHTML('currentValue')} of ${cellHTML('targetValue')}`;
-    options.title.text = Math.round(cellValue('currentValue') / cellValue('targetValue') * 100) + "%";
+    options.title.text = cellHTML('currentValue');
     options.series[0].dial.backgroundColor = config.markerColor[0];
     options.chart.backgroundColor = config.backgroundColor[0];
 
+    const goalValue = Number(data[0][config['targetValue']]?.value);
+    const goalSpan = (options.yAxis.max - options.yAxis.min) * 0.02; // 2% of the gauge range
+    console.log("goalValue", goalValue, cellPct('minValuePct'), cellPct('maxValuePct'));
     options.yAxis.plotBands = [
       // Set the colored bands
       {
@@ -280,20 +295,36 @@ const vis: GaugeViz = {
         innerRadius: '30%', // Inner radius for metric
         outerRadius: '35%'
       }
-    ]
+    ];
 
-    let titleColor = '#000000';
-    const plotBands = options.yAxis.plotBands;
-    for (let i = 1; i < plotBands.length -1; i++) {
-      const band = plotBands[i];
-      if (cellValue('currentValue') >= band.from && cellValue('currentValue') <= band.to) {
-        titleColor = band.color;
-        break;
+    // Add goal marker as a plot line
+    options.yAxis.plotLines = [{
+      color: config.goalColor[0],
+      width: 2,
+      value: goalValue,
+      zIndex: 5, // Ensure the goal marker is on top
+      label: {
+        text: 'Goal',
+        align: 'center',
+        verticalAlign: 'middle',
+        rotation: 0,
+        x: 0,
+        y: 20, // Adjust y position for better visibility
+        style: {
+          color: config.goalColor[0],
+          fontFamily: config.fontFamily,
+          fontSize: '12px',
+          fontWeight: 'bold',
+          backgroundColor: '#FFFFFF' // Add background color for better visibility
+        }
       }
-    }
+    }];
+
+    let titleColor = config.titleColor[0];
     options.title.style.color = titleColor;
     options.title.style.fontFamily = config.fontFamily;
     options.subtitle.style.fontFamily = config.fontFamily;
+    options.credits = { enabled: false };
     Highcharts.chart(element, options);
   },
 };
