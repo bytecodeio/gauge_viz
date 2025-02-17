@@ -229,28 +229,28 @@ export const gaugeOptions = (
       {
         type: "gauge",
         name: "Value",
-        color: "#007CA0",
+        color: "#ffffff",
         //@ts-ignore
         data: [
           {
             y: latest,
             name: "Value",
-            color: "#007CA0",
+            color: "ffffff",
           },
         ],
         label: {
           enabled: false,
         },
         dial: {
-          backgroundColor: "#007CA0",
-          borderColor: "#007CA0",
+          backgroundColor: "#ffffff",
+          borderColor: "#ffffff",
           baseWidth: 3,
           topWidth: 1,
           baseLength: "97%",
         },
         pivot: {
-          backgroundColor: "#007CA0",
-          borderColor: "#007CA0",
+          backgroundColor: "#ffffff",
+          borderColor: "#ffffff",
         },
       },
     ],
@@ -311,7 +311,7 @@ export const flexibleGaugeOptions = () => {
         enabled: false
       },
       dial: {
-        radius: '105%',
+        radius: '100%',
         baseLength: '10%',
         baseWidth: 10,
         rearLength: '10%',
