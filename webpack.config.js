@@ -1,6 +1,5 @@
 let path = require("path");
 
-
 let webpackConfig = {
   entry: {
     gauge: "./src/visualizations/gauge.ts",
@@ -14,7 +13,7 @@ let webpackConfig = {
   resolve: {
     extensions: [".ts", ".js", ".scss", ".css"],
   },
- module: {
+  module: {
     rules: [
       { test: /\.ts$/, loader: "ts-loader" },
       { test: /\.css$/, loader: ["to-string-loader", "css-loader"] },
@@ -30,6 +29,4 @@ let webpackConfig = {
   watch: true,
 };
 
-module.exports = 
-  webpackConfig
-;
+module.exports = webpackConfig;

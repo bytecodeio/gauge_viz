@@ -17,6 +17,7 @@ declare var LookerCharts: {
     htmlForCell: (cell: any) => string;
   };
 };
+
 interface GaugeViz extends VisualizationDefinition {
   elementRef?: HTMLDivElement;
 }
@@ -26,83 +27,9 @@ interface Measure {
   name: string;
 }
 
-function updateOptions(config: any, queryResponse: any, data: any) {
-  const { measure_like: measureLike } = queryResponse.fields;
-  const measures1: Measure[] = measureLike.map((measure: any) => ({
-    label: measure.label_short ?? measure.label,
-    name: measure.name,
-  }));
-
-  const updatedOptions = { ...vis.options };
-  updatedOptions["currentValue"] = {
-    section: "Metrics",
-    type: "string",
-    label: "Current Value",
-    display: "select",
-    order: 1,
-    values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
-    default: measures1[0].name,
-  };
-  // updated
-  updatedOptions["minValuePct"] = {
-    section: "Metrics",
-    type: "number",
-    label: "Minimum Value %",
-    display: "number",
-    order: 2,
-    default: 0,
-  };
-  updatedOptions["endRedBeginYellowPct"] = {
-    section: "Metrics",
-    type: "number",
-    label: "End Red Begin Yellow %",
-    display: "number",
-    order: 3,
-    default: 80,
-  };
-  updatedOptions["endYellowBeginGreenPct"] = {
-    section: "Metrics",
-    type: "number",
-    label: "End Yellow Begin Green %",
-    display: "number",
-    order: 4,
-    default: 90,
-  };
-  updatedOptions["targetValue"] = {
-    section: "Metrics",
-    type: "string",
-    label: "Target Value",
-    display: "select",
-    order: 5,
-    values: measures1.map((measure) => { return { [measure.label]: measure.name } }),
-    default: measures1[0].name,
-  };
-  updatedOptions["endGreenBeginYellowPct"] = {
-    section: "Metrics",
-    type: "number",
-    label: "End Green Begin Yellow %",
-    display: "number",
-    order: 6,
-    default: 110,
-  };
-  updatedOptions["endYellowBeginRedPct"] = {
-    section: "Metrics",
-    type: "number",
-    label: "End Yellow Begin Red %",
-    display: "number",
-    order: 7,
-    default: 120,
-  };
-  updatedOptions["maxValuePct"] = {
-    section: "Metrics",
-    type: "number",
-    label: "Maximum Value %",
-    display: "number",
-    order: 8,
-    default: 140,
-  };
-
-  return updatedOptions;
+// Extend HTMLElement to include the chart property
+interface ChartHTMLElement extends HTMLElement {
+  chart?: Highcharts.Chart;
 }
 
 const vis: GaugeViz = {
@@ -110,12 +37,6 @@ const vis: GaugeViz = {
   label: "gauge-chart",
   //  These are the Looker Viz Config menu options.
   options: {
-    metricColor: {
-      type: "array",
-      label: "Metric Color",
-      display: "color",
-      section: "Style",
-    },
     fontFamily: {
       type: "string",
       label: "Font Family",
@@ -143,54 +64,23 @@ const vis: GaugeViz = {
     element.className = "highcharts-custom-vis";
   },
   // Render in response to the data or settings changing
-  update(data, element, config, queryResponse) {
+  updateAsync(data, element: ChartHTMLElement, config, queryResponse, details, doneRendering) {
     if (!queryResponse || !queryResponse.fields) {
       console.error("Invalid query response:", queryResponse);
       return;
     }
-    const hasAppliedFilters = !!queryResponse && !!queryResponse.applied_filters
-    let dashboardLowerFilter = hasAppliedFilters && queryResponse.applied_filters["analytics_func_simple.gauge_lower_threshold"]?.value
-    let dashboardUpperFilter = hasAppliedFilters && queryResponse.applied_filters["analytics_func_simple.gauge_upper_threshold"]?.value
 
-    const filterMin = dashboardLowerFilter ? dashboardLowerFilter : config.lowerThreshold
-    const filterMax = dashboardUpperFilter ? dashboardUpperFilter : config.upperThreshold
-
-    const errors = handleErrors(this, queryResponse, {
-      min_pivots: 0,
-      max_pivots: 0,
-      min_dimensions: 0,
-      max_dimensions: 0,
-      min_measures: 3,
-      max_measures: 10,
-    });
-
-    if (!this.options.minValuePct) {
-      const updatedOptions = updateOptions(config, queryResponse, data);
-      this.trigger("registerOptions", updatedOptions);
-    }
-
-    let [pivots, dimensions, measures] = processQueryResponse(queryResponse);
+    let [pivots, dimensions, measure_like] = processQueryResponse(queryResponse);
+    let measures = measure_like
     let fields = dimensions.concat(measures);
-    let timeSeries = fields.filter((field) => field.type?.includes("date"));
 
-    if (timeSeries.length > 1) {
-      console.log(
-        "More than one date dimension or measure was found. Only one date dimension or measure is supported for time series data."
-      );
-    }
+    const currentMeasure = measures[0].name;
+    const goalMeasure = measures[1].name;
 
-    const cellValue = (configName: string) => Number(data[0][config[configName]]?.value);
-    const cellPct = (configName: string) => Number(data[0][config['targetValue']]?.value) * config[configName] / 100;
-    const cellHTML = (configName: string) => data[0][config[configName]] && (data[0][config[configName]].rendered || data[0][config[configName]].value);
-    const innerRadius = (minField: string, maxField: string): string => {
-      if (cellValue('currentValue') >= cellPct(minField) && cellValue('currentValue') <= cellPct(maxField)) {
-        return '40%';
-      } else {
-        return '90%';
-      }
-    };
-    const goalValue = Number(data[0][config['targetValue']]?.value);
-    let currentValue = cellValue('currentValue');
+    const cellValue = (measureName: string) => Number(data[0][measureName]?.value);
+    const cellHTML = (measureName: string) => data[0][measureName] && (data[0][measureName].rendered || data[0][measureName].value);
+    const goalValue = cellValue(goalMeasure);
+    let currentValue = cellValue(currentMeasure);
 
     // Adjust max value based on the current value and the goal
     const maxValue = currentValue > goalValue ? goalValue * 2 : goalValue;
@@ -221,29 +111,48 @@ const vis: GaugeViz = {
         outerRadius: '100%'
       },
       {
-        from: cellPct('minValuePct'),
-        to: cellPct('endRedBeginYellowPct'),
+        from: 0,
+        to: 100,
         color: '#CD3632', 
-        innerRadius: innerRadius('minValuePct', 'endRedBeginYellowPct'), 
+        innerRadius: '80%', 
         outerRadius: '100%'
-      }, {
-        from: cellPct('endYellowBeginGreenPct'),
-        to: cellPct('endGreenBeginYellowPct'),
-        color: currentValue >= goalValue ? 'green' : '#686868', 
-        innerRadius: currentValue >= maxValue ? '40%' : innerRadius('endYellowBeginGreenPct', 'maxValuePct'), 
-        outerRadius: '100%'
-      },
+      }
     ];
 
-    // Add gray color band if currentValue is less than goal
     if (currentValue < goalValue) {
-      options.yAxis.plotBands.push({
-        from: currentValue,
-        to: goalValue,
-        color: '#686868',
-        innerRadius: '40%',
-        outerRadius: '100%'
-      });
+      options.yAxis.plotBands.push(
+        {
+          from: 0,
+          to: currentValue,
+          color: '#CD3632', // Red
+          innerRadius: '40%',
+          outerRadius: '100%'
+        },
+        {
+          from: currentValue,
+          to: goalValue,
+          color: '#686868', // Gray
+          innerRadius: '80%',
+          outerRadius: '100%'
+        }
+      );
+    } else {
+      options.yAxis.plotBands.push(
+        {
+          from: 0,
+          to: goalValue,
+          color: '#CD3632', // Red
+          innerRadius: '80%',
+          outerRadius: '100%'
+        },
+        {
+          from: goalValue,
+          to: maxValue,
+          color: 'green', // Green
+          innerRadius: '40%',
+          outerRadius: '100%'
+        }
+      );
     }
 
     options.title = {
@@ -255,7 +164,13 @@ const vis: GaugeViz = {
 
     options.subtitle.style.fontFamily = config.fontFamily;
     options.credits = { enabled: false };
-    Highcharts.chart(element, options);
+
+    // Check if chart already exists
+    if (element.chart) {
+      element.chart.update(options);
+    } else {
+      element.chart = Highcharts.chart(element, options);
+    }
 
     // Add custom annotations
     const svg = element.querySelector('.highcharts-root');
@@ -271,7 +186,7 @@ const vis: GaugeViz = {
       customLabel.setAttribute('text-anchor', 'start');
       customLabel.setAttribute('fill', 'white');
       customLabel.setAttribute('font-size', '16px');
-      customLabel.textContent = currentValue < goalValue ? cellHTML('targetValue') : '';
+      customLabel.textContent = currentValue < goalValue ? cellHTML(goalMeasure) : '';
       svg.appendChild(customLabel);
 
       // Add the current value annotation
@@ -314,7 +229,7 @@ const vis: GaugeViz = {
         currentValueLabel.setAttribute('fill', currentValue >= goalValue ? 'green' : '#e00e45');
         currentValueLabel.setAttribute('font-size', '16px');
         currentValueLabel.setAttribute('font-weight', 'bold');
-        currentValueLabel.textContent = cellHTML('currentValue');
+        currentValueLabel.textContent = cellHTML(currentMeasure);
         svg.appendChild(currentValueLabel);
 
         // Add goal value annotation at the top if current value is greater than or equal to target value
@@ -326,11 +241,12 @@ const vis: GaugeViz = {
           goalLabel.setAttribute('fill', 'white');
           goalLabel.setAttribute('font-size', '16px');
           goalLabel.setAttribute('font-weight', 'bold');
-          goalLabel.textContent = cellHTML('targetValue');
+          goalLabel.textContent = cellHTML(goalMeasure);
           svg.appendChild(goalLabel);
         }
       }
     }
+    doneRendering();
   }
 };
 
