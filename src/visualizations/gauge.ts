@@ -148,7 +148,7 @@ const vis: GaugeViz = {
         {
           from: goalValue,
           to: maxValue,
-          color: 'green', // Green
+          color: '#77C043',
           innerRadius: '40%',
           outerRadius: '100%'
         }
@@ -226,7 +226,7 @@ const vis: GaugeViz = {
         currentValueLabel.setAttribute('x', x.toString());
         currentValueLabel.setAttribute('y', y.toString());
         currentValueLabel.setAttribute('text-anchor', textAnchorPosition);
-        currentValueLabel.setAttribute('fill', currentValue >= goalValue ? 'green' : '#e00e45');
+        currentValueLabel.setAttribute('fill', currentValue >= goalValue ? '' : '#e00e45');
         currentValueLabel.setAttribute('font-size', '16px');
         currentValueLabel.setAttribute('font-weight', 'bold');
         currentValueLabel.textContent = cellHTML(currentMeasure);
