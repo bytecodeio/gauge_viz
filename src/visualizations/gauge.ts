@@ -229,6 +229,7 @@ const vis: GaugeViz = {
     options.yAxis.max = Number(maxValue);
     options.series[0].data = [cellValue('currentValue')];
     options.subtitle.text = `${cellHTML('currentValue')} of ${cellHTML('targetValue')}`;
+    options.subtitle.style = { fontSize: '14px', fontFamily: fontFamily, color: '#000000' };
     options.title.text = Math.round(cellValue('currentValue') / cellValue('targetValue') * 100) + "%";
     options.series[0].dial.backgroundColor = config.markerColor[0];
     options.chart.backgroundColor = config.backgroundColor[0];
@@ -294,6 +295,8 @@ const vis: GaugeViz = {
     options.title.style.color = titleColor;
   
     options.title.style.color = titleColor;
+    //remove watermark highcharts.com
+    options.credits = { enabled: false };
     Highcharts.chart(element, options);
   },
 };
